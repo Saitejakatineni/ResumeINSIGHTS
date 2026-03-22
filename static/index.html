@@ -1,0 +1,1921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>resumeINSIGHTS</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --surface2: #f8fafc;
+      --border: #e2e8f0;
+      --accent: #6366f1;
+      --accent2: #8b5cf6;
+      --accent-tint: #eef2ff;
+      --green: #10b981;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --text: #0f172a;
+      --muted: #64748b;
+      --radius: 12px;
+      --sidebar: 268px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background:
+        radial-gradient(ellipse at 0% 0%, #eef2ff 0%, transparent 60%),
+        radial-gradient(ellipse at 100% 0%, #f0f9ff 0%, transparent 60%),
+        radial-gradient(ellipse at 50% 100%, #faf5ff 0%, transparent 60%),
+        #f0f4ff;
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Dot grid overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(rgba(99,102,241,0.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 24px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      flex-shrink: 0;
+      z-index: 10;
+      position: relative;
+      box-shadow: 0 1px 0 transparent;
+    }
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4);
+    }
+    .logo {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: white;
+      box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+    }
+    .brand-name {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+    .brand-name span { color: var(--accent); }
+    header p { font-size: 12px; color: var(--muted); margin-top: 1px; }
+    .header-spacer { flex: 1; }
+    .new-btn {
+      padding: 8px 16px;
+      background: var(--accent);
+      border: none; border-radius: 8px;
+      color: #fff; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s, transform 0.1s;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .new-btn:hover { background: #4f46e5; }
+    .new-btn:active { transform: scale(0.98); }
+
+    /* ── Body layout ── */
+    .body-wrap {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      height: calc(100vh - 65px);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Sidebar ── */
+    aside {
+      width: var(--sidebar);
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(8px);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .sidebar-header {
+      padding: 14px 16px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+    .history-list::-webkit-scrollbar { width: 4px; }
+    .history-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .history-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+      position: relative;
+    }
+    .history-item:hover { background: rgba(99,102,241,0.04); }
+    .history-item.active {
+      border-left-color: var(--accent);
+      background: var(--accent-tint);
+    }
+    .history-item .h-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 186px;
+    }
+    .history-item .h-jd {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 186px;
+    }
+    .history-item .h-meta {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-top: 5px;
+    }
+    .h-score {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 10px;
+    }
+    .h-score.good  { background: rgba(16,185,129,0.12); color: var(--green); }
+    .h-score.mid   { background: rgba(245,158,11,0.12);  color: var(--yellow); }
+    .h-score.low   { background: rgba(239,68,68,0.12);   color: var(--red); }
+    .h-date { font-size: 10px; color: var(--muted); }
+    .h-delete {
+      position: absolute;
+      top: 8px; right: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      opacity: 0;
+      cursor: pointer;
+      transition: opacity 0.15s, color 0.15s;
+      padding: 2px 4px;
+    }
+    .history-item:hover .h-delete { opacity: 1; }
+    .h-delete:hover { color: var(--red); }
+    .history-empty {
+      padding: 24px 16px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* ── Main content ── */
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 32px 48px;
+    }
+    main::-webkit-scrollbar { width: 6px; }
+    main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Input Panel ── */
+    .input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 700px) { .input-grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    /* Drop Zone */
+    .drop-zone {
+      border: 2px dashed #c7d2fe;
+      border-radius: 10px;
+      padding: 32px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      color: var(--muted);
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: var(--accent-tint);
+    }
+    .drop-zone .dz-icon {
+      margin-bottom: 10px;
+      color: var(--accent);
+      display: flex; justify-content: center;
+    }
+    .drop-zone p { font-size: 13px; color: var(--muted); }
+    .drop-zone span { color: var(--accent); font-weight: 600; cursor: pointer; }
+    .drop-zone small { display: block; font-size: 11px; color: var(--muted); margin-top: 4px; }
+    #file-input { display: none; }
+
+    .file-selected {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 12px; padding: 9px 12px;
+      background: rgba(16,185,129,0.06);
+      border: 1px solid rgba(16,185,129,0.2);
+      border-radius: 8px; font-size: 13px; color: var(--green);
+    }
+    .file-selected .remove {
+      margin-left: auto; cursor: pointer;
+      color: var(--muted); font-size: 15px;
+    }
+    .file-selected .remove:hover { color: var(--red); }
+
+    textarea {
+      width: 100%; height: 200px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 13px; line-height: 1.6;
+      padding: 12px; resize: vertical;
+      outline: none; transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    textarea:focus { border-color: var(--accent); }
+    textarea::placeholder { color: #94a3b8; }
+
+    .analyze-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; margin-top: 16px; padding: 13px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; font-size: 14px; font-weight: 600;
+      border: none; border-radius: 10px; cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+    }
+    .analyze-btn:hover { opacity: 0.92; }
+    .analyze-btn:active { transform: scale(0.99); }
+    .analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .test-btn {
+      display: block; width: 100%; margin-top: 10px; padding: 10px;
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      border-radius: 10px; color: var(--accent);
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .test-btn:hover { background: var(--accent-tint); }
+
+    .test-mode-banner {
+      background: rgba(245,158,11,0.07);
+      border: 1px solid rgba(245,158,11,0.25);
+      border-radius: 8px; padding: 8px 14px;
+      font-size: 12px; color: #b45309;
+      margin-bottom: 16px; display: none;
+    }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-box {
+      background: rgba(239,68,68,0.06);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: 10px; padding: 12px 14px;
+      font-size: 13px; color: var(--red);
+      margin-top: 12px; display: none;
+    }
+    .error-box.visible { display: block; }
+
+    /* ── Tech Log Panel ── */
+    #tech-log {
+      display: none;
+      margin-top: 28px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid #1e293b;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    }
+    #tech-log.visible { display: block; }
+    .log-header {
+      display: flex; align-items: center; gap: 10px;
+      background: #1e293b;
+      padding: 10px 16px;
+      font-size: 12px; font-weight: 600;
+      color: #94a3b8;
+      font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+    }
+    .log-pulse {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #4ade80;
+      animation: pulse-dot 1.2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.7); }
+    }
+    .log-body {
+      background: #0f172a;
+      padding: 14px 18px;
+      min-height: 120px;
+      font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+    .log-line {
+      display: block;
+      opacity: 0;
+      animation: log-fade-in 0.4s ease forwards;
+    }
+    @keyframes log-fade-in {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .log-line.info    { color: #67e8f9; }
+    .log-line.process { color: #fbbf24; }
+    .log-line.success { color: #4ade80; }
+
+    /* ── Results ── */
+    #results { margin-top: 28px; display: none; }
+    #results.visible { display: block; }
+
+    .results-title {
+      font-size: 18px; font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .usage-badge {
+      margin-left: auto;
+      font-size: 11px; font-weight: 500;
+      padding: 4px 10px; border-radius: 20px;
+      background: var(--accent-tint);
+      border: 1px solid #c7d2fe;
+      color: var(--accent);
+    }
+
+    /* ── Tabs ── */
+    .tabs-row {
+      display: flex; gap: 6px;
+      margin-bottom: 20px;
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 5px;
+      width: fit-content;
+    }
+    .tab-btn {
+      padding: 7px 18px;
+      border-radius: 50px;
+      border: none; background: transparent;
+      font-size: 13px; font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .tab-btn:hover { background: rgba(99,102,241,0.08); color: var(--accent); }
+    .tab-btn.active {
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+
+    .tab-panel { display: none; animation: tab-fade 0.25s ease; }
+    .tab-panel.active { display: block; }
+    @keyframes tab-fade {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Score Cards ── */
+    .score-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px; margin-bottom: 18px;
+    }
+    @media (max-width: 560px) { .score-row { grid-template-columns: 1fr 1fr; } }
+
+    .score-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px; text-align: center;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+    .score-card .label {
+      font-size: 11px; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 10px;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+
+    /* Tooltip */
+    .info-icon {
+      cursor: help;
+      font-size: 12px;
+      color: #94a3b8;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+    .info-icon .tooltip {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.5;
+      padding: 8px 11px;
+      border-radius: 8px;
+      width: 220px;
+      text-align: left;
+      text-transform: none;
+      letter-spacing: 0;
+      white-space: normal;
+      z-index: 100;
+      pointer-events: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+    .info-icon .tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%; left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: #1e293b;
+    }
+    .info-icon:hover .tooltip { display: block; }
+
+    .circle-wrap { position: relative; width: 80px; height: 80px; margin: 0 auto 8px; }
+    .circle-wrap svg { transform: rotate(-90deg); }
+    .circle-bg { fill: none; stroke: #e2e8f0; stroke-width: 7; }
+    .circle-progress { fill: none; stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset 1s ease, stroke 0.4s ease; }
+    .circle-text {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 700; color: var(--text);
+    }
+    .circle-text small { font-size: 10px; color: var(--muted); font-weight: 400; }
+    .grade-badge {
+      font-size: 38px; font-weight: 800; line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .summary-text {
+      background: #f8fafc;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 12px 14px; font-size: 13px; line-height: 1.7; color: var(--text);
+    }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+    @media (max-width: 580px) { .two-col { grid-template-columns: 1fr; } }
+
+    .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      padding: 4px 10px; border-radius: 20px;
+      font-size: 12px; font-weight: 500;
+      cursor: default;
+    }
+    .tag.green { background: rgba(16,185,129,0.1); color: #059669; border: 1px solid rgba(16,185,129,0.2); }
+    .tag.red   { background: rgba(239,68,68,0.08); color: #dc2626; border: 1px solid rgba(239,68,68,0.15); }
+
+    .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .bullet-list li { display: flex; gap: 9px; align-items: flex-start; font-size: 13px; line-height: 1.5; color: var(--text); }
+    .dot {
+      flex-shrink: 0; width: 18px; height: 18px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 10px; margin-top: 1px;
+    }
+    .dot.green  { background: rgba(16,185,129,0.12); color: var(--green); }
+    .dot.red    { background: rgba(239,68,68,0.12);  color: var(--red); }
+    .dot.purple { background: rgba(99,102,241,0.12); color: var(--accent); }
+
+    /* ── Priority list ── */
+    .priority-list { display: flex; flex-direction: column; gap: 8px; }
+    .priority-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 12px; background: #f8fafc;
+      border-radius: 10px; border: 1px solid var(--border); font-size: 13px;
+      color: var(--text);
+    }
+    .priority-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: white; flex-shrink: 0;
+    }
+
+    /* ── Keyword chips (clickable) ── */
+    .kw-chips {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .kw-chip {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: 20px;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer; border: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .kw-chip:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+    .kw-chip.matching { background: rgba(16,185,129,0.12); color: #059669; border: 1px solid rgba(16,185,129,0.2); }
+    .kw-chip.missing  { background: rgba(239,68,68,0.08);  color: #dc2626; border: 1px solid rgba(239,68,68,0.15); }
+
+    /* ── Keyword coverage bar ── */
+    .kw-coverage {
+      margin-bottom: 16px;
+    }
+    .kw-coverage-label {
+      display: flex; justify-content: space-between;
+      font-size: 11px; color: var(--muted); margin-bottom: 6px;
+    }
+    .kw-coverage-track {
+      height: 6px; border-radius: 6px;
+      background: rgba(239,68,68,0.15);
+      overflow: hidden;
+    }
+    .kw-coverage-fill {
+      height: 100%; border-radius: 6px;
+      background: linear-gradient(90deg, #10b981, #34d399);
+      transition: width 1s ease;
+    }
+
+    /* ── ATS reject info cards ── */
+    .ats-reject-cards {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+      margin-top: 12px;
+    }
+    @media (max-width: 580px) { .ats-reject-cards { grid-template-columns: 1fr; } }
+    .ats-reject-card {
+      background: rgba(239,68,68,0.04);
+      border: 1px solid rgba(239,68,68,0.15);
+      border-radius: 10px; padding: 14px;
+    }
+    .ats-reject-card .ats-reject-icon {
+      font-size: 18px; margin-bottom: 8px;
+    }
+    .ats-reject-card p {
+      font-size: 12px; color: var(--text); line-height: 1.5; font-weight: 500;
+    }
+
+    /* ── Improve banner ── */
+    .improve-banner {
+      display: flex; align-items: center; gap: 10px;
+      background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.06));
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 10px; padding: 12px 16px;
+      margin-bottom: 16px; font-size: 13px; color: var(--accent); font-weight: 500;
+    }
+
+    /* ── Git diff style ── */
+    .diff-card {
+      margin-top: 12px;
+      border: 1px solid #2d333b;
+      border-radius: 10px;
+      overflow: hidden;
+      font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+      box-shadow: var(--shadow-md);
+    }
+    .diff-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 14px;
+      background: #161b22;
+      border-bottom: 1px solid #2d333b;
+      font-size: 11px; color: #8b949e;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .diff-header .diff-file { font-weight: 600; color: #e6edf3; }
+    .diff-header .diff-pills { display: flex; gap: 6px; }
+    .diff-pill {
+      font-size: 10px; font-weight: 700; padding: 2px 7px;
+      border-radius: 10px;
+    }
+    .diff-pill.del { background: rgba(239,68,68,0.18); color: #f85149; }
+    .diff-pill.add { background: rgba(46,160,67,0.18);  color: #3fb950; }
+    .diff-body { background: #0d1117; }
+    .diff-line {
+      display: flex; align-items: flex-start;
+      min-height: 28px;
+    }
+    .diff-line:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .diff-ln {
+      flex-shrink: 0; width: 36px;
+      padding: 6px 0;
+      text-align: center;
+      font-size: 11px; color: #3d4451;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      user-select: none;
+    }
+    .diff-marker {
+      flex-shrink: 0; width: 24px;
+      padding: 6px 0;
+      text-align: center;
+      font-size: 13px; font-weight: 700;
+      user-select: none;
+    }
+    .diff-text {
+      flex: 1; padding: 6px 12px 6px 6px;
+      font-size: 12px; line-height: 1.55;
+      word-break: break-word; white-space: pre-wrap;
+    }
+    .diff-line.del { background: rgba(239,68,68,0.08); }
+    .diff-line.del .diff-marker { color: #f85149; }
+    .diff-line.del .diff-text   { color: #ffa198; }
+    .diff-line.del .diff-ln     { background: rgba(239,68,68,0.05); }
+    .diff-line.add { background: rgba(46,160,67,0.07); }
+    .diff-line.add .diff-marker { color: #3fb950; }
+    .diff-line.add .diff-text   { color: #7ee787; }
+    .diff-line.add .diff-ln     { background: rgba(46,160,67,0.04); }
+    .diff-reason {
+      padding: 8px 14px;
+      background: #161b22;
+      border-top: 1px solid #2d333b;
+      font-size: 11px; color: #8b949e;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      display: flex; gap: 6px; align-items: flex-start;
+    }
+    .diff-reason-icon { flex-shrink: 0; color: #d29922; }
+    .diff-reason-text { color: #8b949e; }
+
+    .add-card {
+      background: #f8fafc; border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px; margin-top: 10px;
+    }
+    .add-card .line-text {
+      font-size: 12px; color: var(--green);
+      background: rgba(16,185,129,0.06); border-radius: 6px;
+      padding: 7px 9px; margin-bottom: 7px;
+      font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+    }
+    .add-card .meta { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+    .section-badge {
+      font-size: 10px; font-weight: 600; padding: 2px 8px;
+      border-radius: 10px; background: var(--accent-tint); color: var(--accent);
+      border: 1px solid #c7d2fe;
+    }
+    .add-card .reason { font-size: 11px; color: var(--muted); }
+
+    .section-heading {
+      font-size: 14px; font-weight: 700; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 7px; color: var(--text);
+    }
+    .section-icon {
+      width: 22px; height: 22px; border-radius: 6px;
+      background: var(--accent-tint);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+    .missing-note {
+      font-size: 11px; color: var(--muted); margin-top: 10px; font-style: italic;
+    }
+
+    /* ── Clickable score cards ── */
+    .score-card.clickable {
+      cursor: pointer;
+      transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+      border: 1px solid var(--border);
+    }
+    .score-card.clickable:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(99,102,241,0.14);
+      border-color: #c7d2fe;
+    }
+    .score-card .card-hint {
+      font-size: 10px; color: var(--accent); margin-top: 6px;
+      letter-spacing: 0.3px; opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .score-card.clickable:hover .card-hint { opacity: 1; }
+
+    /* ── Detail Drawer ── */
+    .drawer-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(15,23,42,0.4);
+      backdrop-filter: blur(2px);
+      z-index: 200;
+      animation: overlay-in 0.2s ease;
+    }
+    .drawer-overlay.open { display: block; }
+    @keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
+
+    .detail-drawer {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: 480px; max-width: 95vw;
+      background: var(--surface);
+      box-shadow: -8px 0 32px rgba(0,0,0,0.12);
+      z-index: 300;
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .detail-drawer.open { transform: translateX(0); }
+    .detail-drawer::-webkit-scrollbar { width: 4px; }
+    .detail-drawer::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .drawer-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 20px 24px 18px;
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0;
+      background: var(--surface);
+      z-index: 1;
+    }
+    .drawer-header-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .drawer-title { font-size: 16px; font-weight: 700; color: var(--text); }
+    .drawer-subtitle { font-size: 12px; color: var(--muted); margin-top: 1px; }
+    .drawer-close {
+      margin-left: auto; cursor: pointer;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: var(--muted); flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+    .drawer-close:hover { background: rgba(239,68,68,0.08); color: var(--red); }
+
+    .drawer-body { padding: 20px 24px 32px; }
+
+    .drawer-score-big {
+      text-align: center; padding: 24px 0 20px;
+    }
+    .drawer-score-big .dsb-value {
+      font-size: 56px; font-weight: 900; line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .drawer-score-big .dsb-label {
+      font-size: 12px; color: var(--muted); margin-top: 4px;
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+
+    /* Grade scale */
+    .grade-scale {
+      display: flex; gap: 4px; margin: 12px 0;
+      justify-content: center; flex-wrap: wrap;
+    }
+    .grade-chip {
+      padding: 4px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 700;
+      background: var(--surface2); color: var(--muted);
+      border: 1px solid var(--border);
+      transition: transform 0.15s;
+    }
+    .grade-chip.current {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white; border-color: transparent;
+      transform: scale(1.15);
+      box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+    }
+    .grade-chip.better { opacity: 0.45; }
+
+    /* Improvement steps */
+    .improve-steps { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+    .improve-step {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 12px; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 10px;
+    }
+    .improve-step-num {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white; font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .improve-step-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+    .improve-step-text strong { color: var(--accent); font-weight: 600; }
+
+    /* Score factor rows */
+    .score-factor {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .score-factor:last-child { border-bottom: none; }
+    .score-factor-name { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
+    .score-factor-bar { width: 100px; height: 6px; border-radius: 6px; background: var(--border); overflow: hidden; }
+    .score-factor-fill { height: 100%; border-radius: 6px; transition: width 0.8s ease; }
+    .score-factor-pct { font-size: 12px; font-weight: 700; width: 32px; text-align: right; }
+
+    .section-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--muted); margin: 16px 0 8px;
+    }
+
+    /* ── Report tab ── */
+    .report-section { margin-bottom: 28px; }
+    .report-section-title {
+      font-size: 13px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.7px;
+      color: var(--muted); margin-bottom: 10px;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .report-score-row {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 12px;
+      margin-bottom: 20px;
+    }
+    .report-score-box {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px; text-align: center;
+    }
+    .report-score-box .rs-val {
+      font-size: 28px; font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .report-score-box .rs-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .print-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 18px; border: 1px solid var(--accent);
+      border-radius: 8px; background: var(--accent-tint);
+      color: var(--accent); font-size: 13px; font-weight: 600;
+      cursor: pointer; margin-bottom: 20px;
+      transition: background 0.2s;
+    }
+    .print-btn:hover { background: #e0e7ff; }
+    @media print {
+      header, aside, .tabs-row, .test-btn, .analyze-btn, #upload-section, #tech-log,
+      .new-btn, .print-btn, .drawer-overlay, .detail-drawer { display: none !important; }
+      .tab-panel { display: block !important; }
+      #tab-report { display: block !important; }
+      body { background: white !important; }
+      body::before { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Document base -->
+      <rect x="3" y="1.5" width="13" height="17" rx="2" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.55)" stroke-width="1.2"/>
+      <!-- Lines -->
+      <line x1="6" y1="6.5" x2="13" y2="6.5" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-opacity="0.9"/>
+      <line x1="6" y1="9.5" x2="11" y2="9.5" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-opacity="0.7"/>
+      <line x1="6" y1="12.5" x2="9" y2="12.5" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-opacity="0.5"/>
+      <!-- Insight badge -->
+      <circle cx="18" cy="17" r="5" fill="white"/>
+      <path d="M15.8 17.1l1.3 1.4 2.7-2.8" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div>
+    <div class="brand-name">resume<span>INSIGHTS</span></div>
+    <p>AI-powered resume tailoring</p>
+  </div>
+  <div class="header-spacer"></div>
+  <button class="new-btn" onclick="newAnalysis()">+ New Analysis</button>
+</header>
+
+<div class="body-wrap">
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="sidebar-header">History</div>
+    <div class="history-list" id="history-list">
+      <div class="history-empty">No analyses yet.<br>Upload your resume to get started.</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main id="main-panel">
+
+    <!-- Upload form -->
+    <div id="upload-section">
+      <div class="input-grid">
+        <div class="card">
+          <div class="card-title">Upload Resume</div>
+          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+            <div class="dz-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+            </div>
+            <p>Drag &amp; drop or <span>browse</span></p>
+            <small>PDF or DOCX &middot; Max 10 MB</small>
+          </div>
+          <input type="file" id="file-input" accept=".pdf,.docx" />
+          <div class="file-selected" id="file-info" style="display:none">
+            <span id="file-name"></span>
+            <span class="remove" id="remove-file">&#10005;</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Job Description</div>
+          <textarea id="jd-input" placeholder="Paste the full job description here&hellip;"></textarea>
+        </div>
+      </div>
+
+      <div class="error-box" id="error-box"></div>
+      <button class="analyze-btn" id="analyze-btn" onclick="analyze()">
+        <span>Analyze My Resume</span>
+      </button>
+      <button class="test-btn" onclick="runTest()">Test with Sample Data (no credits used)</button>
+    </div>
+
+    <!-- Tech Log Panel -->
+    <div id="tech-log">
+      <div class="log-header">
+        <div class="log-pulse" id="log-pulse"></div>
+        <span>&#9658; Analysis Log</span>
+      </div>
+      <div class="log-body" id="log-body"></div>
+    </div>
+
+    <!-- Results -->
+    <div id="results">
+      <hr class="divider" />
+      <div class="test-mode-banner" id="test-banner">Test Mode &mdash; this is sample data, not a real analysis of your resume.</div>
+      <div class="results-title">Analysis Results <span class="usage-badge" id="usage-badge" style="display:none"></span></div>
+
+      <!-- Tabs nav -->
+      <div class="tabs-row">
+        <button class="tab-btn active" onclick="switchTab('overview', this)">Overview</button>
+        <button class="tab-btn" onclick="switchTab('keywords', this)">Keywords</button>
+        <button class="tab-btn" onclick="switchTab('improve', this)">Improve</button>
+        <button class="tab-btn" onclick="switchTab('format', this)">Format &amp; ATS</button>
+        <button class="tab-btn" onclick="switchTab('report', this)">&#128196; Report</button>
+      </div>
+
+      <!-- Tab 1: Overview -->
+      <div class="tab-panel active" id="tab-overview">
+
+        <div class="score-row">
+          <div class="score-card clickable" onclick="openDetail('match')" title="Click for Match breakdown">
+            <div class="label">
+              Match
+              <span class="info-icon">ⓘ
+                <span class="tooltip">Based on overlap between your skills, experience level, and domain keywords vs. what the job description explicitly requires. 90%+ = likely to pass recruiter screen.</span>
+              </span>
+            </div>
+            <div class="circle-wrap">
+              <svg viewBox="0 0 80 80" width="80" height="80">
+                <circle class="circle-bg" cx="40" cy="40" r="34"/>
+                <circle class="circle-progress" id="match-ring" cx="40" cy="40" r="34"
+                  stroke="#6366f1" stroke-dasharray="213.63" stroke-dashoffset="213.63"/>
+              </svg>
+              <div class="circle-text"><span id="match-val">0</span><small>%</small></div>
+            </div>
+            <div class="card-hint">View breakdown &rarr;</div>
+          </div>
+          <div class="score-card clickable" onclick="openDetail('ats')" title="Click for ATS details">
+            <div class="label">
+              ATS Score
+              <span class="info-icon">ⓘ
+                <span class="tooltip">Based on keyword density, resume formatting parseability, section structure, and use of standard headings. 90%+ = clean pass through automated screening systems.</span>
+              </span>
+            </div>
+            <div class="circle-wrap">
+              <svg viewBox="0 0 80 80" width="80" height="80">
+                <circle class="circle-bg" cx="40" cy="40" r="34"/>
+                <circle class="circle-progress" id="ats-ring" cx="40" cy="40" r="34"
+                  stroke="#10b981" stroke-dasharray="213.63" stroke-dashoffset="213.63"/>
+              </svg>
+              <div class="circle-text"><span id="ats-val">0</span><small>%</small></div>
+            </div>
+            <div class="card-hint">View breakdown &rarr;</div>
+          </div>
+          <div class="score-card clickable" onclick="openDetail('grade')" title="Click for Grade details">
+            <div class="label">
+              Grade
+              <span class="info-icon">ⓘ
+                <span class="tooltip">Combined letter grade (A+ to F) weighing both match % and ATS score. A = strong candidate, B = solid with gaps, C = significant rework needed.</span>
+              </span>
+            </div>
+            <div style="height:80px;display:flex;align-items:center;justify-content:center;">
+              <div class="grade-badge" id="grade-val">&mdash;</div>
+            </div>
+            <div class="card-hint">View breakdown &rarr;</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="section-heading">Match Summary</div>
+          <div class="summary-text" id="summary-text"></div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="section-heading">Priority Actions</div>
+          <div class="priority-list" id="priority-list"></div>
+        </div>
+
+        <div class="kw-chips" id="kw-stat-chips"></div>
+
+      </div>
+
+      <!-- Tab 2: Keywords -->
+      <div class="tab-panel" id="tab-keywords">
+
+        <div class="kw-coverage card" style="margin-bottom:16px">
+          <div class="kw-coverage-label">
+            <span>Keyword Coverage</span>
+            <span id="kw-coverage-pct">—</span>
+          </div>
+          <div class="kw-coverage-track">
+            <div class="kw-coverage-fill" id="kw-coverage-fill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="section-heading">Matching Keywords</div>
+            <div class="tag-list" id="matching-keywords"></div>
+          </div>
+          <div class="card">
+            <div class="section-heading">Missing Keywords</div>
+            <div class="tag-list" id="missing-keywords"></div>
+            <p class="missing-note">Add these to your resume to increase ATS score</p>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="section-heading">Strengths</div>
+            <ul class="bullet-list" id="strengths-list"></ul>
+          </div>
+          <div class="card">
+            <div class="section-heading">Weaknesses</div>
+            <ul class="bullet-list" id="weaknesses-list"></ul>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tab 3: Improve -->
+      <div class="tab-panel" id="tab-improve">
+
+        <div class="improve-banner">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Apply these changes to reach 97%+ match
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="section-heading">Lines to Change</div>
+          <div id="lines-to-change"></div>
+        </div>
+
+        <div class="card">
+          <div class="section-heading">Lines to Add</div>
+          <div id="lines-to-add"></div>
+        </div>
+
+      </div>
+
+      <!-- Tab 5: Report -->
+      <div class="tab-panel" id="tab-report">
+        <button class="print-btn" onclick="window.print()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z"/></svg>
+          Print / Export PDF
+        </button>
+        <div id="report-content"></div>
+      </div>
+
+      <!-- Tab 4: Format & ATS -->
+      <div class="tab-panel" id="tab-format">
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="section-heading">Formatting Tips</div>
+          <ul class="bullet-list" id="formatting-list"></ul>
+        </div>
+
+        <div class="card">
+          <div class="section-heading">Why ATS Systems Reject Resumes</div>
+          <div class="ats-reject-cards">
+            <div class="ats-reject-card">
+              <div class="ats-reject-icon">&#9638;</div>
+              <p>Multi-column layouts break parsing</p>
+            </div>
+            <div class="ats-reject-card">
+              <div class="ats-reject-icon">&#128444;</div>
+              <p>Graphics and tables are invisible to ATS</p>
+            </div>
+            <div class="ats-reject-card">
+              <div class="ats-reject-icon">&#128196;</div>
+              <p>Non-standard section headings get ignored</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- /#results -->
+
+  </main>
+</div>
+
+<!-- ── Detail Drawer Overlay ── -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDetail()"></div>
+
+<!-- ── Detail Drawer ── -->
+<div class="detail-drawer" id="detail-drawer">
+  <div class="drawer-header">
+    <div class="drawer-header-icon" id="drawer-icon"></div>
+    <div>
+      <div class="drawer-title" id="drawer-title">Details</div>
+      <div class="drawer-subtitle" id="drawer-subtitle"></div>
+    </div>
+    <div class="drawer-close" onclick="closeDetail()">&#10005;</div>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</div>
+
+<script>
+  // ── Tab switching ─────────────────────────────────────────────────────────
+  function switchTab(name, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+  }
+
+  // ── File Upload ──────────────────────────────────────────────────────────
+  const dropZone   = document.getElementById('drop-zone');
+  const fileInput  = document.getElementById('file-input');
+  const fileInfo   = document.getElementById('file-info');
+  const fileNameEl = document.getElementById('file-name');
+  let selectedFile = null;
+
+  dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
+  document.getElementById('remove-file').addEventListener('click', clearFile);
+
+  function setFile(f) {
+    selectedFile = f;
+    fileNameEl.textContent = f.name;
+    fileInfo.style.display = 'flex';
+    dropZone.style.display = 'none';
+  }
+  function clearFile() {
+    selectedFile = null; fileInput.value = '';
+    fileInfo.style.display = 'none';
+    dropZone.style.display = 'block';
+  }
+
+  // ── Error ────────────────────────────────────────────────────────────────
+  function showError(msg) {
+    const b = document.getElementById('error-box');
+    b.textContent = msg; b.classList.add('visible');
+  }
+  function clearError() {
+    const b = document.getElementById('error-box');
+    b.textContent = ''; b.classList.remove('visible');
+  }
+
+  // ── New Analysis ─────────────────────────────────────────────────────────
+  function newAnalysis() {
+    document.getElementById('results').classList.remove('visible');
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('tech-log').classList.remove('visible');
+    document.getElementById('upload-section').style.display = 'block';
+    clearError(); clearFile();
+    document.getElementById('jd-input').value = '';
+    document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Tech Log ─────────────────────────────────────────────────────────────
+  const LOG_STEPS = [
+    { t: '[00:00]', icon: '◆', msg: 'Reading resume file...', cls: 'process' },
+    { t: '[00:01]', icon: '◆', msg: 'Extracting document structure and text...', cls: 'process' },
+    { t: '[00:02]', icon: '◆', msg: 'Connecting to Claude Sonnet AI...', cls: 'info' },
+    { t: '[00:03]', icon: '◆', msg: 'Scanning job description for requirements...', cls: 'process' },
+    { t: '[00:04]', icon: '◆', msg: 'Running keyword frequency analysis...', cls: 'process' },
+    { t: '[00:05]', icon: '◆', msg: 'Scoring ATS compatibility factors...', cls: 'process' },
+    { t: '[00:06]', icon: '◆', msg: 'Evaluating experience &amp; skills alignment...', cls: 'process' },
+    { t: '[00:07]', icon: '◆', msg: 'Generating line-by-line improvement suggestions...', cls: 'process' },
+    { t: '[00:08]', icon: '◆', msg: 'Calculating match percentage and grade...', cls: 'process' },
+    { t: '[00:09]', icon: '◆', msg: 'Finalizing recommendations...', cls: 'process' },
+    { t: '[00:10]', icon: '✓', msg: 'Analysis complete', cls: 'success' },
+  ];
+
+  let logTimers = [];
+
+  function showTechLog() {
+    const log = document.getElementById('tech-log');
+    const body = document.getElementById('log-body');
+    body.innerHTML = '';
+    log.classList.add('visible');
+
+    // Clear any existing timers
+    logTimers.forEach(clearTimeout);
+    logTimers = [];
+
+    LOG_STEPS.forEach((step, i) => {
+      const tid = setTimeout(() => {
+        const line = document.createElement('span');
+        line.className = 'log-line ' + step.cls;
+        line.innerHTML = `<span style="color:#475569">${step.t}</span> <span>${step.icon}</span> ${step.msg}`;
+        body.appendChild(line);
+        body.scrollTop = body.scrollHeight;
+      }, i * 600);
+      logTimers.push(tid);
+    });
+  }
+
+  function hideTechLog() {
+    logTimers.forEach(clearTimeout);
+    logTimers = [];
+    document.getElementById('tech-log').classList.remove('visible');
+    document.getElementById('log-body').innerHTML = '';
+  }
+
+  // ── API bridge — works in pywebview (desktop) and browser (dev) ──────────
+  const api = {
+    async call(method, ...args) {
+      if (window.pywebview) return window.pywebview.api[method](...args);
+      // Dev fallback via HTTP
+      const routes = {
+        analyze:             () => fetch('/analyze', { method: 'POST', body: args[2] }),
+        get_history:         () => fetch('/history'),
+        get_history_item:    () => fetch(`/history/${args[0]}`),
+        delete_history_item: () => fetch(`/history/${args[0]}`, { method: 'DELETE' }),
+        get_test_analysis:   () => fetch('/test-analysis'),
+      };
+      const res = await routes[method]?.();
+      return res?.json();
+    }
+  };
+
+  // ── Analyze ──────────────────────────────────────────────────────────────
+  async function analyze() {
+    clearError();
+    const jd = document.getElementById('jd-input').value.trim();
+    if (!selectedFile) return showError('Please upload your resume (PDF or DOCX).');
+    if (!jd) return showError('Please paste the job description.');
+
+    const btn = document.getElementById('analyze-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div><span>Analyzing with AI\u2026</span>';
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('results').classList.remove('visible');
+
+    // Show the tech log panel
+    showTechLog();
+
+    try {
+      let data;
+      if (window.pywebview) {
+        // Desktop: read file as base64 and call Python directly
+        const b64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload  = () => resolve(reader.result.split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(selectedFile);
+        });
+        data = await window.pywebview.api.analyze(b64, selectedFile.name, jd);
+      } else {
+        // Browser dev mode: use HTTP
+        const form = new FormData();
+        form.append('resume', selectedFile);
+        form.append('job_description', jd);
+        const res = await fetch('/analyze', { method: 'POST', body: form });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `Server error ${res.status}`);
+        }
+        data = await res.json();
+      }
+      if (data?.error) throw new Error(data.error);
+      hideTechLog();
+      renderResults(data);
+      loadHistory();
+    } catch (e) {
+      hideTechLog();
+      showError(e.message || 'Something went wrong. Please try again.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span>Analyze My Resume</span>';
+    }
+  }
+
+  // ── History ──────────────────────────────────────────────────────────────
+  async function loadHistory() {
+    try {
+      const items = window.pywebview
+        ? await window.pywebview.api.get_history()
+        : await fetch('/history').then(r => r.json());
+      const list = document.getElementById('history-list');
+      if (!items?.length) {
+        list.innerHTML = '<div class="history-empty">No analyses yet.<br>Upload your resume to get started.</div>';
+        return;
+      }
+      list.innerHTML = items.map(item => {
+        const pct = item.match_percentage ?? 0;
+        const cls = pct >= 80 ? 'good' : pct >= 60 ? 'mid' : 'low';
+        return `<div class="history-item" data-id="${item.id}" onclick="loadHistoryItem(${item.id}, this)">
+          <span class="h-delete" onclick="deleteItem(event, ${item.id})">&#10005;</span>
+          <div class="h-name">${esc(item.resume_name)}</div>
+          <div class="h-jd">${esc(item.jd_snippet)}&hellip;</div>
+          <div class="h-meta">
+            <span class="h-score ${cls}">${pct}% match</span>
+            <span class="h-date">${esc(item.created_at)}</span>
+          </div>
+        </div>`;
+      }).join('');
+    } catch (_) {}
+  }
+
+  async function loadHistoryItem(id, el) {
+    document.querySelectorAll('.history-item').forEach(e => e.classList.remove('active'));
+    el.classList.add('active');
+    const data = window.pywebview
+      ? await window.pywebview.api.get_history_item(id)
+      : await fetch(`/history/${id}`).then(r => r.json());
+    if (!data) return;
+    document.getElementById('upload-section').style.display = 'none';
+    document.getElementById('jd-input').value = data.jd_full || '';
+    renderResults(data.result);
+  }
+
+  async function deleteItem(e, id) {
+    e.stopPropagation();
+    window.pywebview
+      ? await window.pywebview.api.delete_history_item(id)
+      : await fetch(`/history/${id}`, { method: 'DELETE' });
+    loadHistory();
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function scoreColor(pct) {
+    if (pct >= 80) return '#10b981';
+    if (pct >= 60) return '#f59e0b';
+    return '#ef4444';
+  }
+
+  // ── Render ───────────────────────────────────────────────────────────────
+  function animateCircle(id, pct, circ) {
+    circ = circ || 213.63;
+    const el = document.getElementById(id);
+    const offset = circ - (pct / 100) * circ;
+    el.style.stroke = scoreColor(pct);
+    requestAnimationFrame(() => { el.style.strokeDashoffset = offset; });
+  }
+  function animateCount(id, target) {
+    const el = document.getElementById(id);
+    let v = 0; const step = target / 40;
+    const t = setInterval(() => {
+      v = Math.min(v + step, target);
+      el.textContent = Math.round(v);
+      if (v >= target) clearInterval(t);
+    }, 25);
+  }
+
+  function renderResults(d) {
+    currentData = d;
+    // Test mode banner
+    const banner = document.getElementById('test-banner');
+    banner.style.display = d._test_mode ? 'block' : 'none';
+
+    // Token usage badge
+    const badge = document.getElementById('usage-badge');
+    if (d._usage && !d._test_mode) {
+      badge.textContent = `${(d._usage.input_tokens + d._usage.output_tokens).toLocaleString()} tokens \u00b7 $${d._usage.est_cost_usd} (Sonnet)`;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+
+    animateCircle('match-ring', d.match_percentage || 0);
+    animateCircle('ats-ring',   d.ats_score || 0);
+    animateCount('match-val',   d.match_percentage || 0);
+    animateCount('ats-val',     d.ats_score || 0);
+    document.getElementById('grade-val').textContent = d.overall_grade || '\u2014';
+    document.getElementById('summary-text').textContent = d.match_summary || '';
+
+    const pl = document.getElementById('priority-list');
+    pl.innerHTML = (d.priority_actions || []).map((a, i) =>
+      `<div class="priority-item"><div class="priority-num">${i+1}</div><span>${esc(a)}</span></div>`
+    ).join('');
+
+    // Keyword stat chips (in overview, clicking switches to keywords tab)
+    const matchKws = d.matching_keywords || [];
+    const missKws  = d.missing_keywords  || [];
+    const chipsEl  = document.getElementById('kw-stat-chips');
+    chipsEl.innerHTML = `
+      <button class="kw-chip matching" onclick="switchTab('keywords', document.querySelectorAll('.tab-btn')[1])">
+        <span>&#10003;</span> ${matchKws.length} matching keyword${matchKws.length !== 1 ? 's' : ''}
+      </button>
+      <button class="kw-chip missing" onclick="switchTab('keywords', document.querySelectorAll('.tab-btn')[1])">
+        <span>&#10005;</span> ${missKws.length} missing keyword${missKws.length !== 1 ? 's' : ''}
+      </button>`;
+
+    // Keyword coverage bar
+    const total = matchKws.length + missKws.length;
+    const coveragePct = total > 0 ? Math.round((matchKws.length / total) * 100) : 0;
+    document.getElementById('kw-coverage-pct').textContent = coveragePct + '%';
+    setTimeout(() => {
+      document.getElementById('kw-coverage-fill').style.width = coveragePct + '%';
+    }, 100);
+
+    document.getElementById('matching-keywords').innerHTML =
+      matchKws.map(k => `<span class="tag green">${esc(k)}</span>`).join('');
+
+    document.getElementById('missing-keywords').innerHTML =
+      missKws.map(k => `<span class="tag red">${esc(k)}</span>`).join('');
+
+    document.getElementById('strengths-list').innerHTML =
+      (d.strengths || []).map(s => `<li><div class="dot green">&#10003;</div><span>${esc(s)}</span></li>`).join('');
+    document.getElementById('weaknesses-list').innerHTML =
+      (d.weaknesses || []).map(w => `<li><div class="dot red">!</div><span>${esc(w)}</span></li>`).join('');
+
+    const lc = document.getElementById('lines-to-change');
+    lc.innerHTML = (d.lines_to_change || []).length
+      ? d.lines_to_change.map((c, i) => `
+        <div class="diff-card">
+          <div class="diff-header">
+            <span class="diff-file">resume.${i + 1}</span>
+            <span class="diff-pills">
+              <span class="diff-pill del">&minus; remove</span>
+              <span class="diff-pill add">+ replace</span>
+            </span>
+          </div>
+          <div class="diff-body">
+            <div class="diff-line del">
+              <span class="diff-ln">${i * 2 + 1}</span>
+              <span class="diff-marker">&minus;</span>
+              <span class="diff-text">${esc(c.original)}</span>
+            </div>
+            <div class="diff-line add">
+              <span class="diff-ln">${i * 2 + 2}</span>
+              <span class="diff-marker">+</span>
+              <span class="diff-text">${esc(c.improved)}</span>
+            </div>
+          </div>
+          <div class="diff-reason"><span class="diff-reason-icon">&#128161;</span><span class="diff-reason-text">${esc(c.reason)}</span></div>
+        </div>`).join('')
+      : '<p style="color:var(--muted);font-size:13px">No specific line changes suggested.</p>';
+
+    const la = document.getElementById('lines-to-add');
+    la.innerHTML = (d.lines_to_add || []).length
+      ? d.lines_to_add.map(a => `<div class="add-card">
+          <div class="line-text">+ ${esc(a.line)}</div>
+          <div class="meta">
+            <span class="section-badge">${esc(a.section)}</span>
+            <span class="reason">${esc(a.reason)}</span>
+          </div>
+        </div>`).join('')
+      : '<p style="color:var(--muted);font-size:13px">No additional lines suggested.</p>';
+
+    document.getElementById('formatting-list').innerHTML =
+      (d.formatting_tips || []).map(t =>
+        `<li><div class="dot purple">&rarr;</div><span>${esc(t)}</span></li>`
+      ).join('');
+
+    renderReport(d);
+
+    // Reset to overview tab
+    document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+    document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === 0));
+
+    const r = document.getElementById('results');
+    r.style.display = 'block';
+    r.classList.add('visible');
+    r.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function esc(s) {
+    return String(s ?? '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  async function runTest() {
+    clearError();
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('results').classList.remove('visible');
+    try {
+      const data = window.pywebview
+        ? await window.pywebview.api.get_test_analysis()
+        : await fetch('/test-analysis').then(r => r.json());
+      renderResults(data);
+      loadHistory();
+    } catch (e) {
+      showError(e.message);
+    }
+  }
+
+  // ── Detail Drawer ────────────────────────────────────────────────────────
+  let currentData = null;
+
+  function openDetail(type) {
+    if (!currentData) return;
+    const overlay = document.getElementById('drawer-overlay');
+    const drawer  = document.getElementById('detail-drawer');
+    const icon    = document.getElementById('drawer-icon');
+    const title   = document.getElementById('drawer-title');
+    const sub     = document.getElementById('drawer-subtitle');
+    const body    = document.getElementById('drawer-body');
+
+    if (type === 'match') {
+      icon.style.background = 'rgba(99,102,241,0.1)';
+      icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#6366f1" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/></svg>';
+      title.textContent = 'Match Score Details';
+      sub.textContent   = 'How well your resume fits this role';
+      body.innerHTML    = buildMatchDetail(currentData);
+    } else if (type === 'ats') {
+      icon.style.background = 'rgba(16,185,129,0.1)';
+      icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#10b981" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>';
+      title.textContent = 'ATS Score Details';
+      sub.textContent   = 'Applicant Tracking System compatibility';
+      body.innerHTML    = buildAtsDetail(currentData);
+    } else {
+      icon.style.background = 'rgba(139,92,246,0.1)';
+      icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#8b5cf6" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>';
+      title.textContent = 'Overall Grade Details';
+      sub.textContent   = 'Where you stand and how to reach the next level';
+      body.innerHTML    = buildGradeDetail(currentData);
+    }
+
+    overlay.classList.add('open');
+    drawer.classList.add('open');
+  }
+
+  function closeDetail() {
+    document.getElementById('drawer-overlay').classList.remove('open');
+    document.getElementById('detail-drawer').classList.remove('open');
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+
+  function factorBar(pct, color) {
+    return `<div class="score-factor-bar"><div class="score-factor-fill" style="width:${pct}%;background:${color}"></div></div>`;
+  }
+
+  function buildMatchDetail(d) {
+    const match  = d.match_percentage || 0;
+    const miss   = (d.missing_keywords || []).length;
+    const found  = (d.matching_keywords || []).length;
+    const total  = miss + found;
+    const kwCov  = total > 0 ? Math.round(found / total * 100) : 0;
+    const weaknesses = d.weaknesses || [];
+    const strengths  = d.strengths  || [];
+    const color  = scoreColor(match);
+
+    // Estimate sub-scores from available data
+    const kwScore  = kwCov;
+    const expScore = Math.max(0, Math.min(100, match + (match > 70 ? 5 : -5)));
+    const langScore= match > 60 ? Math.min(100, match + 8) : Math.max(0, match - 8);
+
+    const nextTarget = match < 70 ? 70 : match < 85 ? 85 : 97;
+    const gapSteps = [];
+    if (miss > 0) gapSteps.push({ step: 1, text: `<strong>Add ${miss} missing keyword${miss > 1 ? 's'  : ''}</strong> from the JD to your Skills section. Each keyword added can push match up by 3–5%.` });
+    if (weaknesses.length) gapSteps.push({ step: 2, text: `<strong>Address ${Math.min(3, weaknesses.length)} top weaknesses</strong>: ${esc(weaknesses[0] ? weaknesses[0].substring(0, 80) + (weaknesses[0].length > 80 ? '…' : '') : '')}` });
+    gapSteps.push({ step: gapSteps.length + 1, text: `<strong>Rewrite 2–3 experience bullets</strong> using exact phrasing from the JD to mirror the recruiter's language.` });
+    if (match < nextTarget) gapSteps.push({ step: gapSteps.length + 1, text: `<strong>Target ${nextTarget}%</strong> by applying all changes in the <em>Improve</em> tab — that's when recruiters start taking notice.` });
+
+    return `
+      <div class="drawer-score-big">
+        <div class="dsb-value" style="background:linear-gradient(135deg,${color},${color}99);-webkit-background-clip:text">${match}%</div>
+        <div class="dsb-label">Match Score</div>
+      </div>
+
+      <div class="section-label">Score Breakdown</div>
+      <div>
+        <div class="score-factor">
+          <span class="score-factor-name">Keyword Coverage</span>
+          ${factorBar(kwScore, '#6366f1')}
+          <span class="score-factor-pct" style="color:#6366f1">${kwScore}%</span>
+        </div>
+        <div class="score-factor">
+          <span class="score-factor-name">Experience Fit</span>
+          ${factorBar(expScore, '#10b981')}
+          <span class="score-factor-pct" style="color:#10b981">${expScore}%</span>
+        </div>
+        <div class="score-factor">
+          <span class="score-factor-name">Language Alignment</span>
+          ${factorBar(langScore, '#f59e0b')}
+          <span class="score-factor-pct" style="color:#f59e0b">${langScore}%</span>
+        </div>
+      </div>
+
+      ${strengths.length ? `
+      <div class="section-label">What's working</div>
+      <ul class="bullet-list" style="margin-bottom:12px">
+        ${strengths.slice(0,3).map(s => `<li><div class="dot green">&#10003;</div><span style="font-size:13px">${esc(s)}</span></li>`).join('')}
+      </ul>` : ''}
+
+      ${weaknesses.length ? `
+      <div class="section-label">What's dragging it down</div>
+      <ul class="bullet-list" style="margin-bottom:16px">
+        ${weaknesses.slice(0,3).map(w => `<li><div class="dot red">!</div><span style="font-size:13px">${esc(w)}</span></li>`).join('')}
+      </ul>` : ''}
+
+      <div class="section-label">How to reach ${nextTarget}%+</div>
+      <div class="improve-steps">
+        ${gapSteps.map(s => `<div class="improve-step"><div class="improve-step-num">${s.step}</div><div class="improve-step-text">${s.text}</div></div>`).join('')}
+      </div>
+
+      <div class="section-label" style="margin-top:20px">Score Scale</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.9">
+        <div style="${match>=90?'color:var(--text);font-weight:600':''}">90–100% → likely to pass recruiter screen ✓</div>
+        <div style="${match>=70&&match<90?'color:var(--text);font-weight:600':''}">70–89% → solid fit, addressable gaps</div>
+        <div style="${match>=50&&match<70?'color:var(--text);font-weight:600':''}">50–69% → partial fit, significant rework needed</div>
+        <div style="${match<50?'color:var(--text);font-weight:600':''}">Below 50% → major mismatch in experience or skills</div>
+      </div>`;
+  }
+
+  function buildAtsDetail(d) {
+    const ats  = d.ats_score || 0;
+    const miss = (d.missing_keywords || []).length;
+    const tips = d.formatting_tips || [];
+    const color = scoreColor(ats);
+
+    const kwDensity  = Math.min(100, Math.round(ats * 1.05));
+    const formatting = Math.max(0, Math.min(100, ats + (tips.length > 2 ? -15 : 5)));
+    const sectHeaders= Math.min(100, Math.round(ats * 0.95));
+
+    const steps = [];
+    steps.push({ step: 1, text: `<strong>Add ${miss} missing JD keywords</strong> naturally into your Skills, Summary, and Experience sections. Keyword density is the #1 ATS factor.` });
+    if (tips.length) steps.push({ step: 2, text: `<strong>Fix formatting issues</strong>: ${esc(tips[0])}` });
+    steps.push({ step: 3, text: `<strong>Use standard section headings</strong> exactly: "Work Experience", "Education", "Skills", "Certifications" — ATS parsers scan for these exact titles.` });
+    steps.push({ step: 4, text: `<strong>Use a single-column layout</strong> in PDF format. Multi-column and table-based layouts cause ATS text extraction to garble your content.` });
+    if (ats < 85) steps.push({ step: 5, text: `<strong>Move your Skills section higher</strong> (above Experience). ATS systems weight keyword density in the first 30% of the document more heavily.` });
+
+    return `
+      <div class="drawer-score-big">
+        <div class="dsb-value" style="background:linear-gradient(135deg,${color},${color}99);-webkit-background-clip:text">${ats}</div>
+        <div class="dsb-label">ATS Score</div>
+      </div>
+
+      <div class="section-label">ATS Factors</div>
+      <div>
+        <div class="score-factor">
+          <span class="score-factor-name">Keyword Density</span>
+          ${factorBar(kwDensity, '#6366f1')}
+          <span class="score-factor-pct" style="color:#6366f1">${kwDensity}%</span>
+        </div>
+        <div class="score-factor">
+          <span class="score-factor-name">Formatting / Parseability</span>
+          ${factorBar(formatting, '#10b981')}
+          <span class="score-factor-pct" style="color:#10b981">${formatting}%</span>
+        </div>
+        <div class="score-factor">
+          <span class="score-factor-name">Section Structure</span>
+          ${factorBar(sectHeaders, '#f59e0b')}
+          <span class="score-factor-pct" style="color:#f59e0b">${sectHeaders}%</span>
+        </div>
+      </div>
+
+      <div class="section-label">Why ATS systems reject resumes</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+        ${[
+          ['&#9638;', 'Multi-column layouts break text extraction — content gets merged or lost'],
+          ['&#128444;', 'Graphics, logos, and text boxes are completely invisible to ATS parsers'],
+          ['&#128196;', 'Non-standard headings ("Profile", "My Skills") confuse section detection'],
+          ['&#128279;', 'Headers and footers with contact info are often skipped by parsers'],
+          ['&#127381;', 'Special fonts and symbols can render as garbage characters after parsing'],
+        ].map(([icon, text]) => `
+          <div style="display:flex;gap:10px;align-items:flex-start;padding:10px;background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.1);border-radius:8px">
+            <span style="font-size:16px;flex-shrink:0">${icon}</span>
+            <span style="font-size:12px;color:var(--text);line-height:1.5">${text}</span>
+          </div>`).join('')}
+      </div>
+
+      <div class="section-label">How to push ATS score above 85</div>
+      <div class="improve-steps">
+        ${steps.map(s => `<div class="improve-step"><div class="improve-step-num">${s.step}</div><div class="improve-step-text">${s.text}</div></div>`).join('')}
+      </div>
+
+      ${tips.length ? `
+      <div class="section-label" style="margin-top:20px">Specific formatting tips for your resume</div>
+      <ul class="bullet-list">
+        ${tips.map(t => `<li><div class="dot purple">&rarr;</div><span style="font-size:12px">${esc(t)}</span></li>`).join('')}
+      </ul>` : ''}`;
+  }
+
+  function buildGradeDetail(d) {
+    const grade  = d.overall_grade || '—';
+    const match  = d.match_percentage || 0;
+    const ats    = d.ats_score || 0;
+    const allGrades = ['A+','A','A-','B+','B','B-','C+','C','C-','D','F'];
+    const curIdx = allGrades.indexOf(grade);
+    const nextGrade = curIdx > 0 ? allGrades[curIdx - 1] : null;
+
+    const gradeMap = {
+      'A+': 'Exceptional fit. Near-perfect keyword match and clean ATS formatting. Very likely to pass automated screening and impress a recruiter.',
+      'A':  'Strong candidate. Minor gaps that are easy to address. Resume will pass most ATS filters.',
+      'A-': 'Good fit with a couple of addressable gaps. A few targeted edits will push you into A territory.',
+      'B+': 'Solid resume with 2–3 notable gaps. Focus on the missing keywords and rewrite 1–2 experience bullets.',
+      'B':  'Decent match but needs meaningful rework. Add missing keywords, quantify impact, and fix any formatting issues.',
+      'B-': 'Partial fit. Multiple gaps in both keywords and experience framing. Significant editing required.',
+      'C+': 'Weak match. Major keywords missing and/or experience framing misaligned with JD requirements.',
+      'C':  'Poor fit for this specific role. Consider whether this role actually matches your background.',
+      'C-': 'Very poor fit. The JD requirements diverge significantly from your current resume.',
+      'D':  'Highly unlikely to pass ATS. Either the role is a stretch or the resume needs a full rewrite.',
+      'F':  'Not viable for this role as-is. Completely missing core requirements.',
+    };
+
+    const nextMap = {
+      'B':  ['Add all missing JD keywords to Skills section', 'Quantify 3+ impact bullets with metrics', 'Mirror JD language in your Summary'],
+      'B-': ['Add missing keywords immediately — they\'re the main ATS filter', 'Rewrite weakest experience bullets', 'Fix any multi-column or table formatting'],
+      'B+': ['Close the 2–3 specific gaps in the weaknesses list', 'Add 1 strong quantified bullet per role', 'Ensure job titles match JD-standard terminology'],
+      'C':  ['Full keyword audit against JD — add every relevant term', 'Rewrite Summary to mirror JD language directly', 'Strip all non-ATS-friendly formatting'],
+      'A-': ['Close remaining keyword gaps', 'Strengthen 1–2 experience bullets with precise metrics'],
+    };
+    const nextSteps = nextGrade ? (nextMap[grade] || ['Apply all suggestions in the Improve tab', 'Focus on the top 3 priority actions from the Overview', 'Re-run analysis after making changes to track progress']) : ['Your resume is already at the top grade — maintain keyword alignment when applying to different roles.'];
+
+    return `
+      <div class="drawer-score-big">
+        <div class="dsb-value">${grade}</div>
+        <div class="dsb-label">Overall Grade</div>
+      </div>
+
+      <div class="section-label">Grade Scale</div>
+      <div class="grade-scale">
+        ${allGrades.map((g, i) => `<span class="grade-chip${g === grade ? ' current' : i < curIdx ? ' better' : ''}">${g}</span>`).join('')}
+      </div>
+      <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px">← Better &nbsp;&nbsp; Worse →</p>
+
+      <div class="section-label" style="margin-top:20px">What this grade means</div>
+      <div style="padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:13px;line-height:1.6;color:var(--text)">
+        ${esc(gradeMap[grade] || 'Combined grade based on match % and ATS score.')}
+      </div>
+
+      <div class="section-label" style="margin-top:18px">Score contributors</div>
+      <div>
+        <div class="score-factor">
+          <span class="score-factor-name">Match %</span>
+          ${factorBar(match, '#6366f1')}
+          <span class="score-factor-pct" style="color:#6366f1">${match}%</span>
+        </div>
+        <div class="score-factor">
+          <span class="score-factor-name">ATS Score</span>
+          ${factorBar(ats, '#10b981')}
+          <span class="score-factor-pct" style="color:#10b981">${ats}</span>
+        </div>
+      </div>
+
+      ${nextGrade ? `
+      <div class="section-label" style="margin-top:18px">How to reach <strong>${nextGrade}</strong></div>
+      <div class="improve-steps">
+        ${nextSteps.map((s, i) => `<div class="improve-step"><div class="improve-step-num">${i+1}</div><div class="improve-step-text">${esc(s)}</div></div>`).join('')}
+      </div>` : `
+      <div style="margin-top:18px;padding:14px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;font-size:13px;color:#059669">
+        &#127881; You\'re at the top grade! Keep tailoring your resume for each specific job posting to maintain this level.
+      </div>`}`;
+  }
+
+  // ── Consolidated Report Tab ───────────────────────────────────────────────
+  function renderReport(d) {
+    const matchKws = d.matching_keywords || [];
+    const missKws  = d.missing_keywords  || [];
+    const el = document.getElementById('report-content');
+    if (!el) return;
+    el.innerHTML = `
+      <div class="report-section">
+        <div class="report-section-title">&#128202; Scores</div>
+        <div class="report-score-row">
+          <div class="report-score-box"><div class="rs-val">${d.match_percentage || 0}%</div><div class="rs-lbl">Match</div></div>
+          <div class="report-score-box"><div class="rs-val">${d.ats_score || 0}</div><div class="rs-lbl">ATS Score</div></div>
+          <div class="report-score-box"><div class="rs-val" style="font-size:22px">${esc(d.overall_grade || '—')}</div><div class="rs-lbl">Grade</div></div>
+        </div>
+      </div>
+
+      <div class="report-section">
+        <div class="report-section-title">&#128221; Match Summary</div>
+        <div class="summary-text">${esc(d.match_summary || '')}</div>
+      </div>
+
+      <div class="report-section">
+        <div class="report-section-title">&#9889; Priority Actions</div>
+        <div class="priority-list">
+          ${(d.priority_actions || []).map((a, i) => `<div class="priority-item"><div class="priority-num">${i+1}</div><span>${esc(a)}</span></div>`).join('')}
+        </div>
+      </div>
+
+      <div class="report-section">
+        <div class="report-section-title">&#128269; Keywords</div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:6px">Matching (${matchKws.length})</div>
+          <div class="tag-list">${matchKws.map(k => `<span class="tag green">${esc(k)}</span>`).join('')}</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--red);margin-bottom:6px">Missing (${missKws.length})</div>
+          <div class="tag-list">${missKws.map(k => `<span class="tag red">${esc(k)}</span>`).join('')}</div>
+        </div>
+      </div>
+
+      <div class="report-section">
+        <div class="report-section-title">&#9998; Lines to Change</div>
+        ${(d.lines_to_change || []).length
+          ? d.lines_to_change.map((c, i) => `
+            <div class="diff-card" style="margin-bottom:10px">
+              <div class="diff-header"><span class="diff-file">Change ${i+1}</span></div>
+              <div class="diff-body">
+                <div class="diff-line del"><span class="diff-marker">&minus;</span><span class="diff-text">${esc(c.original)}</span></div>
+                <div class="diff-line add"><span class="diff-marker">+</span><span class="diff-text">${esc(c.improved)}</span></div>
+              </div>
+              <div class="diff-reason"><span class="diff-reason-icon">&#128161;</span><span class="diff-reason-text">${esc(c.reason)}</span></div>
+            </div>`).join('')
+          : '<p style="font-size:13px;color:var(--muted)">None suggested.</p>'}
+      </div>
+
+      <div class="report-section">
+        <div class="report-section-title">&#43; Lines to Add</div>
+        ${(d.lines_to_add || []).length
+          ? d.lines_to_add.map(a => `<div class="add-card"><div class="line-text">+ ${esc(a.line)}</div><div class="meta"><span class="section-badge">${esc(a.section)}</span><span class="reason">${esc(a.reason)}</span></div></div>`).join('')
+          : '<p style="font-size:13px;color:var(--muted)">None suggested.</p>'}
+      </div>
+
+      <div class="report-section">
+        <div class="report-section-title">&#128293; Strengths &amp; Weaknesses</div>
+        <div class="two-col">
+          <div><div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:8px">Strengths</div>
+            <ul class="bullet-list">${(d.strengths||[]).map(s=>`<li><div class="dot green">&#10003;</div><span>${esc(s)}</span></li>`).join('')}</ul></div>
+          <div><div style="font-size:12px;font-weight:600;color:var(--red);margin-bottom:8px">Weaknesses</div>
+            <ul class="bullet-list">${(d.weaknesses||[]).map(w=>`<li><div class="dot red">!</div><span>${esc(w)}</span></li>`).join('')}</ul></div>
+        </div>
+      </div>
+
+      <div class="report-section">
+        <div class="report-section-title">&#9965; Formatting Tips</div>
+        <ul class="bullet-list">
+          ${(d.formatting_tips||[]).map(t=>`<li><div class="dot purple">&rarr;</div><span>${esc(t)}</span></li>`).join('')}
+        </ul>
+      </div>`;
+  }
+
+  // Wait for pywebview bridge to be ready before loading history
+  function init() {
+    loadHistory();
+  }
+  if (window.pywebview) {
+    window.addEventListener('pywebviewready', init);
+  } else {
+    init();
+  }
+</script>
+</body>
+</html>

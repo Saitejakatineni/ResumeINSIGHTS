@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+anthropic
+python-docx
+python-dotenv
+python-multipart
+pywebview
+rumps

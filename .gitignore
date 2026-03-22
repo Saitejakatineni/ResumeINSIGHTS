@@ -1,0 +1,37 @@
+# Secrets & local config
+.env
+*.env
+
+# Analysis history (local SQLite data)
+history.db
+
+# Claude Code project settings
+.claude/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Built app bundle & installer (too large for git — build locally)
+resumeINSIGHTS.app/
+resumeINSIGHTS.dmg
+*.dmg
+*.app
+
+# Temp icon build files
+/tmp/
+
+# Editor
+.vscode/
+.idea/
