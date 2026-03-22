@@ -1,11 +1,9 @@
 """
 resumeINSIGHTS launcher
 
-Starts the FastAPI server, opens a Chrome app-mode window, and shows a
-menu bar icon (top-right macOS bar) with Open / Quit controls.
-
-Quitting from the menu bar — or closing the Chrome window — automatically
-shuts down the server. No manual pkill needed.
+Creates a native macOS app window (WKWebView) that loads the local FastAPI
+server. No Chrome required. The app appears in the Dock like any normal Mac
+app and quits cleanly when the window is closed.
 """
 
 import os
@@ -15,7 +13,21 @@ import threading
 import time
 import urllib.request
 
-import rumps
+import objc
+from AppKit import (
+    NSApplication,
+    NSApplicationActivationPolicyRegular,
+    NSBackingStoreBuffered,
+    NSMakeRect,
+    NSObject,
+    NSWindow,
+    NSWindowStyleMaskClosable,
+    NSWindowStyleMaskMiniaturizable,
+    NSWindowStyleMaskResizable,
+    NSWindowStyleMaskTitled,
+)
+from Foundation import NSURL, NSURLRequest
+from WebKit import WKWebView, WKWebViewConfiguration
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
@@ -28,15 +40,7 @@ PROJECT = RESOURCES or os.path.dirname(os.path.abspath(__file__))
 PORT    = 8765
 URL     = f"http://127.0.0.1:{PORT}"
 
-CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-BRAVE  = "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
-
-APP_PROFILE = os.path.join(
-    os.path.expanduser("~"),
-    "Library", "Application Support", "resumeINSIGHTS", "chrome-profile",
-)
-
-# ── Server helpers ────────────────────────────────────────────────────────────
+# ── Server ────────────────────────────────────────────────────────────────────
 
 def start_server() -> subprocess.Popen:
     python = os.path.join(PROJECT, "venv", "bin", "python")
@@ -56,104 +60,107 @@ def wait_for_server(timeout: int = 20) -> bool:
             time.sleep(0.2)
     return False
 
+# ── Native window ─────────────────────────────────────────────────────────────
 
-def open_browser_window() -> subprocess.Popen | None:
-    os.makedirs(APP_PROFILE, exist_ok=True)
-    browser = (
-        CHROME if os.path.exists(CHROME) else
-        BRAVE  if os.path.exists(BRAVE)  else
-        None
-    )
-    if browser:
-        return subprocess.Popen([
-            browser,
-            f"--app={URL}",
-            f"--user-data-dir={APP_PROFILE}",
-            "--window-size=1300,860",
-            "--no-first-run",
-            "--no-default-browser-check",
-            "--disable-extensions",
-        ])
-    subprocess.Popen(["open", URL])
-    return None
-
-# ── Menu bar app ──────────────────────────────────────────────────────────────
-
-class ResumeInsightsApp(rumps.App):
+class AppDelegate(NSObject):
     """
-    Menu bar icon for resumeINSIGHTS.
-    Appears as 'rI' in the top-right macOS menu bar.
-    Provides Open and Quit controls.
+    NSApplication delegate.
+    - Owns the server process and WKWebView window.
+    - Shuts down the server when the window closes.
     """
 
-    def __init__(self):
-        super().__init__("rI", quit_button=None)
-        self.menu = [
-            rumps.MenuItem("Open resumeINSIGHTS", callback=self.open_window),
-            None,                                               # separator
-            rumps.MenuItem("Quit resumeINSIGHTS", callback=self.quit_app),
-        ]
-        self._server_proc:  subprocess.Popen | None = None
-        self._browser_proc: subprocess.Popen | None = None
+    def initWithServerProc_(self, server_proc):
+        self = objc.super(AppDelegate, self).init()
+        if self is None:
+            return None
+        self._server_proc = server_proc
+        self._window      = None
+        self._webview     = None
+        return self
 
-    # ── Startup ───────────────────────────────────────────────────────────────
+    def applicationDidFinishLaunching_(self, notification):
+        self._build_window()
+        self._load_url(URL)
 
-    def launch(self) -> None:
-        """Called in a background thread immediately after the menu bar starts."""
-        self._server_proc = start_server()
+    def _build_window(self):
+        style = (
+            NSWindowStyleMaskTitled
+            | NSWindowStyleMaskClosable
+            | NSWindowStyleMaskMiniaturizable
+            | NSWindowStyleMaskResizable
+        )
+        self._window = NSWindow.alloc().initWithContentRect_styleMask_backing_defer_(
+            NSMakeRect(0, 0, 1300, 860),
+            style,
+            NSBackingStoreBuffered,
+            False,
+        )
+        self._window.setTitle_("resumeINSIGHTS")
+        self._window.center()
+        self._window.setDelegate_(self)
 
-        if not wait_for_server():
-            rumps.alert(
-                title="resumeINSIGHTS",
-                message="Could not start the server. Try reinstalling the app.",
-            )
-            self._shutdown()
-            return
+        cfg = WKWebViewConfiguration.alloc().init()
+        self._webview = WKWebView.alloc().initWithFrame_configuration_(
+            self._window.contentView().bounds(),
+            cfg,
+        )
+        self._webview.setAutoresizingMask_(18)  # width + height flexible
+        self._window.contentView().addSubview_(self._webview)
+        self._window.makeKeyAndOrderFront_(None)
 
-        self._browser_proc = open_browser_window()
+    def _load_url(self, url_string: str):
+        ns_url     = NSURL.URLWithString_(url_string)
+        ns_request = NSURLRequest.requestWithURL_(ns_url)
+        self._webview.loadRequest_(ns_request)
 
-        # Watch for the Chrome window closing
-        if self._browser_proc:
-            self._browser_proc.wait()
-            # Window was closed by the user — shut everything down
-            self._shutdown()
-
-    # ── Menu actions ──────────────────────────────────────────────────────────
-
-    def open_window(self, _) -> None:
-        """Re-open the app window if it was closed."""
-        self._browser_proc = open_browser_window()
-        if self._browser_proc:
-            threading.Thread(target=self._watch_browser, daemon=True).start()
-
-    def quit_app(self, _) -> None:
-        """Terminate browser + server then exit the menu bar app."""
-        if self._browser_proc and self._browser_proc.poll() is None:
-            self._browser_proc.terminate()
+    # Called when the red X is clicked
+    def windowWillClose_(self, notification):
         self._shutdown()
 
-    # ── Internal ──────────────────────────────────────────────────────────────
+    # Called when all windows are closed
+    def applicationShouldTerminateAfterLastWindowClosed_(self, app):
+        return True
 
-    def _watch_browser(self) -> None:
-        """Background thread: shut down when the browser window closes."""
-        if self._browser_proc:
-            self._browser_proc.wait()
-            self._shutdown()
+    def applicationWillTerminate_(self, notification):
+        self._shutdown()
 
-    def _shutdown(self) -> None:
+    def _shutdown(self):
         if self._server_proc and self._server_proc.poll() is None:
             self._server_proc.terminate()
             self._server_proc.wait()
-        rumps.quit_application()
-
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
+def main():
+    # Start the FastAPI server in the background before the UI launches
+    server_proc = start_server()
+
+    if not wait_for_server():
+        subprocess.Popen([
+            "osascript", "-e",
+            'display alert "resumeINSIGHTS" message '
+            '"Could not start the server. Try reinstalling the app."',
+        ])
+        server_proc.terminate()
+        sys.exit(1)
+
+    # Boot NSApplication
+    app = NSApplication.sharedApplication()
+    app.setActivationPolicy_(NSApplicationActivationPolicyRegular)
+
+    # Set the dock icon if the .icns is bundled
+    icns_path = os.path.join(PROJECT, "..", "Resources", "AppIcon.icns")
+    if os.path.exists(icns_path):
+        from AppKit import NSImage
+        icon = NSImage.alloc().initWithContentsOfFile_(icns_path)
+        if icon:
+            app.setApplicationIconImage_(icon)
+
+    delegate = AppDelegate.alloc().initWithServerProc_(server_proc)
+    app.setDelegate_(delegate)
+    app.activateIgnoringOtherApps_(True)
+    app.run()
+
+
 if __name__ == "__main__":
-    menu_app = ResumeInsightsApp()
-
-    # Start server + browser in background so the menu bar appears immediately
-    t = threading.Thread(target=menu_app.launch, daemon=True)
-    t.start()
-
-    menu_app.run()
+    main()

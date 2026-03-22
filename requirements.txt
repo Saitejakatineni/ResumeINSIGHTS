@@ -4,5 +4,5 @@ anthropic
 python-docx
 python-dotenv
 python-multipart
-pywebview
-rumps
+pyobjc-framework-Cocoa
+pyobjc-framework-WebKit
