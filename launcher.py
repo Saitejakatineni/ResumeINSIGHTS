@@ -1,21 +1,24 @@
 """
-resumeINSIGHTS launcher — starts the FastAPI server and opens a standalone
-app window using Chrome's --app mode (no address bar, no tabs).
+resumeINSIGHTS launcher
 
-The server is automatically shut down when the app window is closed.
-Works from the project folder (dev) and from inside the .app bundle (installed).
+Starts the FastAPI server, opens a Chrome app-mode window, and shows a
+menu bar icon (top-right macOS bar) with Open / Quit controls.
+
+Quitting from the menu bar — or closing the Chrome window — automatically
+shuts down the server. No manual pkill needed.
 """
 
 import os
 import subprocess
 import sys
+import threading
 import time
 import urllib.request
 
+import rumps
+
 # ── Config ────────────────────────────────────────────────────────────────────
 
-# --resources flag is passed by the .app shell script so paths resolve
-# correctly regardless of where the app is installed.
 RESOURCES = None
 if "--resources" in sys.argv:
     idx = sys.argv.index("--resources")
@@ -28,14 +31,12 @@ URL     = f"http://127.0.0.1:{PORT}"
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 BRAVE  = "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
 
-# Isolated Chrome profile so the app window is separate from the user's
-# normal browser session.
 APP_PROFILE = os.path.join(
     os.path.expanduser("~"),
     "Library", "Application Support", "resumeINSIGHTS", "chrome-profile",
 )
 
-# ── Server ────────────────────────────────────────────────────────────────────
+# ── Server helpers ────────────────────────────────────────────────────────────
 
 def start_server() -> subprocess.Popen:
     python = os.path.join(PROJECT, "venv", "bin", "python")
@@ -47,7 +48,6 @@ def start_server() -> subprocess.Popen:
 
 
 def wait_for_server(timeout: int = 20) -> bool:
-    """Poll the server until it responds or the timeout is reached."""
     for _ in range(timeout * 5):
         try:
             urllib.request.urlopen(URL, timeout=1)
@@ -56,21 +56,14 @@ def wait_for_server(timeout: int = 20) -> bool:
             time.sleep(0.2)
     return False
 
-# ── Browser window ────────────────────────────────────────────────────────────
 
-def open_app_window() -> subprocess.Popen | None:
-    """
-    Open the app in Chrome/Brave app mode (no address bar, no tabs).
-    Returns the browser process, or None if only 'open' was available.
-    """
+def open_browser_window() -> subprocess.Popen | None:
     os.makedirs(APP_PROFILE, exist_ok=True)
-
     browser = (
         CHROME if os.path.exists(CHROME) else
         BRAVE  if os.path.exists(BRAVE)  else
         None
     )
-
     if browser:
         return subprocess.Popen([
             browser,
@@ -81,39 +74,86 @@ def open_app_window() -> subprocess.Popen | None:
             "--no-default-browser-check",
             "--disable-extensions",
         ])
-
-    # Fallback: open in default browser (no auto-shutdown support)
     subprocess.Popen(["open", URL])
     return None
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+# ── Menu bar app ──────────────────────────────────────────────────────────────
 
-def show_error_dialog(message: str) -> None:
-    subprocess.Popen([
-        "osascript", "-e",
-        f'display alert "resumeINSIGHTS failed to start" message "{message}"',
-    ])
+class ResumeInsightsApp(rumps.App):
+    """
+    Menu bar icon for resumeINSIGHTS.
+    Appears as 'rI' in the top-right macOS menu bar.
+    Provides Open and Quit controls.
+    """
 
+    def __init__(self):
+        super().__init__("rI", quit_button=None)
+        self.menu = [
+            rumps.MenuItem("Open resumeINSIGHTS", callback=self.open_window),
+            None,                                               # separator
+            rumps.MenuItem("Quit resumeINSIGHTS", callback=self.quit_app),
+        ]
+        self._server_proc:  subprocess.Popen | None = None
+        self._browser_proc: subprocess.Popen | None = None
+
+    # ── Startup ───────────────────────────────────────────────────────────────
+
+    def launch(self) -> None:
+        """Called in a background thread immediately after the menu bar starts."""
+        self._server_proc = start_server()
+
+        if not wait_for_server():
+            rumps.alert(
+                title="resumeINSIGHTS",
+                message="Could not start the server. Try reinstalling the app.",
+            )
+            self._shutdown()
+            return
+
+        self._browser_proc = open_browser_window()
+
+        # Watch for the Chrome window closing
+        if self._browser_proc:
+            self._browser_proc.wait()
+            # Window was closed by the user — shut everything down
+            self._shutdown()
+
+    # ── Menu actions ──────────────────────────────────────────────────────────
+
+    def open_window(self, _) -> None:
+        """Re-open the app window if it was closed."""
+        self._browser_proc = open_browser_window()
+        if self._browser_proc:
+            threading.Thread(target=self._watch_browser, daemon=True).start()
+
+    def quit_app(self, _) -> None:
+        """Terminate browser + server then exit the menu bar app."""
+        if self._browser_proc and self._browser_proc.poll() is None:
+            self._browser_proc.terminate()
+        self._shutdown()
+
+    # ── Internal ──────────────────────────────────────────────────────────────
+
+    def _watch_browser(self) -> None:
+        """Background thread: shut down when the browser window closes."""
+        if self._browser_proc:
+            self._browser_proc.wait()
+            self._shutdown()
+
+    def _shutdown(self) -> None:
+        if self._server_proc and self._server_proc.poll() is None:
+            self._server_proc.terminate()
+            self._server_proc.wait()
+        rumps.quit_application()
+
+
+# ── Entry point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    server_proc = start_server()
+    menu_app = ResumeInsightsApp()
 
-    if not wait_for_server():
-        show_error_dialog("Could not start the server. Try reinstalling the app.")
-        server_proc.terminate()
-        sys.exit(1)
+    # Start server + browser in background so the menu bar appears immediately
+    t = threading.Thread(target=menu_app.launch, daemon=True)
+    t.start()
 
-    browser_proc = open_app_window()
-
-    if browser_proc is not None:
-        # Block until the user closes the app window, then shut down the server.
-        browser_proc.wait()
-        server_proc.terminate()
-        server_proc.wait()
-    else:
-        # Fallback mode (no browser process to track) — keep server alive
-        # until the user manually kills it or closes the terminal.
-        try:
-            server_proc.wait()
-        except KeyboardInterrupt:
-            server_proc.terminate()
+    menu_app.run()
